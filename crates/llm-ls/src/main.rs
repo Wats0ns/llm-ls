@@ -1,3 +1,4 @@
+use clap::builder::ValueParser;
 use clap::Parser;
 use config::{load_config, LlmLsConfig};
 use custom_types::llm_ls::{
@@ -29,6 +30,7 @@ use tracing::{debug, error, info, info_span, warn, Instrument};
 use tracing_appender::rolling;
 use tracing_subscriber::EnvFilter;
 use uuid::Uuid;
+use serde_json::{json, Map, Value};
 
 use crate::backend::{build_body, build_headers, parse_generations};
 use crate::document::Document;
@@ -321,6 +323,7 @@ async fn request_completion(
     http_client: &reqwest::Client,
     prompt: String,
     params: &GetCompletionsParams,
+    extra_params: Map<String, Value>,
 ) -> Result<Vec<Generation>> {
     let t = Instant::now();
 
@@ -329,6 +332,7 @@ async fn request_completion(
         params.model.clone(),
         prompt,
         params.request_body.clone(),
+        extra_params,
     );
     let headers = build_headers(&params.backend, params.api_token.as_ref(), params.ide)?;
     let res = http_client
@@ -529,6 +533,19 @@ impl LlmService {
             None => "".to_string(),
         }
     }
+    
+    fn enriched_data_for_request(
+        &self,
+        document: &Document
+    ) -> Map<String, Value> {
+        let extra_params = json!({"repo": "test",
+            "language": document.language_id});
+
+        match extra_params.as_object() {
+            Some(extra) => extra.clone(),
+            None => Map::new(),
+        }
+    }
 
     async fn get_completions(
         &self,
@@ -608,10 +625,12 @@ impl LlmService {
             } else {
                 &self.http_client
             };
+            let extra_params = self.enriched_data_for_request(document);
             let result = request_completion(
                 http_client,
                 prompt,
                 &params,
+                extra_params,
             )
             .await?;
 

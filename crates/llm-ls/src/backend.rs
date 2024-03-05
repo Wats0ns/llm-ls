@@ -181,6 +181,7 @@ pub(crate) fn build_body(
     model: String,
     prompt: String,
     mut request_body: Map<String, Value>,
+    extra_params: Map<String, Value>,
 ) -> Map<String, Value> {
     match backend {
         Backend::HuggingFace { .. } | Backend::Tgi { .. } => {
@@ -198,6 +199,7 @@ pub(crate) fn build_body(
             request_body.insert("stream".to_owned(), Value::Bool(false));
         }
     };
+    request_body.insert("extra_params".to_owned(), Value::Object(extra_params));
     request_body
 }
 
