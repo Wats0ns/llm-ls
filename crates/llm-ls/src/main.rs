@@ -546,6 +546,27 @@ impl LlmService {
             None => Map::new(),
         }
     }
+    
+    async fn file_uri_to_workspace(&self, file_uri: String) -> String {
+        debug!("From file to workspace {}", file_uri);
+        debug!("With workspaces {:?}", self.workspace_folders);
+        let folders = self.workspace_folders.read().await;
+        match folders.as_ref() {
+            Some(folders) => {
+                let parent_workspace = folders
+                    .clone()
+                    .into_iter()
+                    .filter(|folder| file_uri.contains(folder.uri.path()))
+                    .collect::<Vec<WorkspaceFolder>>();
+                if parent_workspace.is_empty() {
+                    folders[0].name.clone()
+                } else {
+                    parent_workspace[0].name.clone()
+                }
+            }
+            None => "".to_string(),
+        }
+    }
 
     async fn get_completions(
         &self,
