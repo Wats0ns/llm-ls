@@ -1,4 +1,3 @@
-use clap::builder::ValueParser;
 use clap::Parser;
 use config::{load_config, LlmLsConfig};
 use custom_types::llm_ls::{
@@ -9,6 +8,7 @@ use language_id::LanguageId;
 use retrieval::{Snippet, SnippetRetriever};
 use ropey::Rope;
 use serde::{Deserialize, Serialize};
+use serde_json::{json, Map, Value};
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::path::{Path, PathBuf};
@@ -30,7 +30,6 @@ use tracing::{debug, error, info, info_span, warn, Instrument};
 use tracing_appender::rolling;
 use tracing_subscriber::EnvFilter;
 use uuid::Uuid;
-use serde_json::{json, Map, Value};
 
 use crate::backend::{build_body, build_headers, parse_generations};
 use crate::document::Document;
@@ -533,38 +532,18 @@ impl LlmService {
             None => "".to_string(),
         }
     }
-    
+
     fn enriched_data_for_request(
         &self,
-        document: &Document
+        document: &Document,
+        target_workspace: String,
     ) -> Map<String, Value> {
-        let extra_params = json!({"repo": "test",
+        let extra_params = json!({"repository": target_workspace,
             "language": document.language_id});
 
         match extra_params.as_object() {
             Some(extra) => extra.clone(),
             None => Map::new(),
-        }
-    }
-    
-    async fn file_uri_to_workspace(&self, file_uri: String) -> String {
-        debug!("From file to workspace {}", file_uri);
-        debug!("With workspaces {:?}", self.workspace_folders);
-        let folders = self.workspace_folders.read().await;
-        match folders.as_ref() {
-            Some(folders) => {
-                let parent_workspace = folders
-                    .clone()
-                    .into_iter()
-                    .filter(|folder| file_uri.contains(folder.uri.path()))
-                    .collect::<Vec<WorkspaceFolder>>();
-                if parent_workspace.is_empty() {
-                    folders[0].name.clone()
-                } else {
-                    parent_workspace[0].name.clone()
-                }
-            }
-            None => "".to_string(),
         }
     }
 
@@ -646,7 +625,8 @@ impl LlmService {
             } else {
                 &self.http_client
             };
-            let extra_params = self.enriched_data_for_request(document);
+            let extra_params = self.enriched_data_for_request(document,
+                target_workspace);
             let result = request_completion(
                 http_client,
                 prompt,
