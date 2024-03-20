@@ -1,4 +1,4 @@
-use super::{Generation, NAME, VERSION};
+use super::{NAME, VERSION};
 use custom_types::llm_ls::{Backend, Ide};
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, USER_AGENT};
 use serde::{Deserialize, Serialize};
@@ -6,6 +6,12 @@ use serde_json::{json, Map, Value};
 use std::fmt::Display;
 
 use crate::error::{Error, Result};
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Generation {
+    pub generated_text: String,
+}
+
 
 #[derive(Debug, Deserialize)]
 pub struct APIError {

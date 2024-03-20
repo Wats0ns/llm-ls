@@ -30,7 +30,7 @@ use tracing_appender::rolling;
 use tracing_subscriber::EnvFilter;
 use uuid::Uuid;
 
-use crate::backend::{build_body, build_headers, parse_generations};
+use crate::backend::{build_body, build_headers, parse_generations, Generation};
 use crate::document::Document;
 use crate::error::{internal_error, Error, Result};
 use crate::retrieval::BuildFrom;
@@ -40,7 +40,7 @@ mod config;
 mod document;
 mod error;
 mod language_id;
-mod retrieval;
+pub mod retrieval;
 
 const MAX_WARNING_REPEAT: Duration = Duration::from_secs(3_600);
 pub const NAME: &str = "llm-ls";
@@ -130,11 +130,6 @@ fn should_complete(document: &Document, position: Position) -> Result<Completion
     } else {
         Ok(CompletionType::Empty)
     }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Generation {
-    generated_text: String,
 }
 
 struct LlmService {

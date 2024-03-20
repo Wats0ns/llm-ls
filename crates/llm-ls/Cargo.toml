@@ -74,3 +74,8 @@ features = ["v4", "fast-rng", "serde"]
 
 [dev-dependencies]
 lsp-client = { path = "../lsp-client" }
+
+[[bin]]
+name = "bench"
+harness = false
+path = "src/bench.rs"

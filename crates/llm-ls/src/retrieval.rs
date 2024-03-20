@@ -141,7 +141,7 @@ fn is_code_file(file_name: &Path) -> bool {
     }
 }
 
-async fn build_model_and_tokenizer(
+pub async fn build_model_and_tokenizer(
     model_id: String,
     revision: String,
 ) -> Result<(BertModel, Tokenizer)> {
@@ -243,7 +243,7 @@ pub(crate) struct SnippetRetriever {
     cache_path: PathBuf,
     collection_name: String,
     db: Option<Db>,
-    model: Arc<BertModel>,
+    pub model: Arc<BertModel>,
     model_config: ModelConfig,
     tokenizer: Tokenizer,
     window_size: usize,
@@ -514,13 +514,15 @@ impl SnippetRetriever {
 impl SnippetRetriever {
     // TODO: handle overflowing in Encoding
     /// Embedding order is preserved and stays the same as encoding input
-    async fn generate_embeddings(
+    pub async fn generate_embeddings(
         &self,
         encodings: Vec<Encoding>,
         model: Arc<BertModel>,
     ) -> Result<Vec<Vec<f32>>> {
         let start = Instant::now();
+        let len_embed = encodings.len();
         let embedding = spawn_blocking(move || -> Result<Vec<Vec<f32>>> {
+            debug!("Generating started in {} ms", start.elapsed().as_millis());
             let tokens = encodings
                 .iter()
                 .map(|elem| Ok(Tensor::new(elem.get_ids().to_vec(), &model.device)?))
@@ -533,7 +535,7 @@ impl SnippetRetriever {
             Ok(embedding.to_vec2::<f32>()?)
         })
         .await?;
-        debug!("embedding generated in {} ms", start.elapsed().as_millis());
+        debug!("{} embedding generated in {} ms", len_embed, start.elapsed().as_millis());
         embedding
     }
 
