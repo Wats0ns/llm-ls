@@ -8,6 +8,7 @@ use language_id::LanguageId;
 use retrieval::{Snippet, SnippetRetriever};
 use ropey::Rope;
 use serde::{Deserialize, Serialize};
+use serde_json::{json, Map, Value};
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::path::{Path, PathBuf};
@@ -324,6 +325,7 @@ async fn request_completion(
     http_client: &reqwest::Client,
     prompt: String,
     params: &GetCompletionsParams,
+    extra_params: Map<String, Value>,
 ) -> Result<Vec<Generation>> {
     let t = Instant::now();
 
@@ -332,6 +334,7 @@ async fn request_completion(
         params.model.clone(),
         prompt,
         params.request_body.clone(),
+        extra_params,
     );
     let headers = build_headers(&params.backend, params.api_token.as_ref(), params.ide)?;
     let res = http_client
@@ -531,6 +534,41 @@ fn file_uri_to_workspace(workspace_folders: Option<&Vec<WorkspaceFolder>>, file_
 }
 
 impl LlmService {
+    async fn file_uri_to_workspace(&self, file_uri: String) -> String {
+        debug!("From file to workspace {}", file_uri);
+        debug!("With workspaces {:?}", self.workspace_folders);
+        let folders = self.workspace_folders.read().await;
+        match folders.as_ref() {
+            Some(folders) => {
+                let parent_workspace = folders
+                    .clone()
+                    .into_iter()
+                    .filter(|folder| file_uri.contains(folder.uri.path()))
+                    .collect::<Vec<WorkspaceFolder>>();
+                if parent_workspace.is_empty() {
+                    folders[0].name.clone()
+                } else {
+                    parent_workspace[0].name.clone()
+                }
+            }
+            None => "".to_string(),
+        }
+    }
+
+    fn enriched_data_for_request(
+        &self,
+        document: &Document,
+        target_workspace: String,
+    ) -> Map<String, Value> {
+        let extra_params = json!({"repository": target_workspace,
+            "language": document.language_id});
+
+        match extra_params.as_object() {
+            Some(extra) => extra.clone(),
+            None => Map::new(),
+        }
+    }
+
     async fn get_completions(
         &self,
         params: GetCompletionsParams,
@@ -612,10 +650,13 @@ impl LlmService {
             } else {
                 &self.http_client
             };
+            let extra_params = self.enriched_data_for_request(document,
+                target_workspace);
             let result = request_completion(
                 http_client,
                 prompt,
                 &params,
+                extra_params,
             )
             .await?;
 
