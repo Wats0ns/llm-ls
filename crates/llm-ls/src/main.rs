@@ -514,6 +514,7 @@ fn build_url(backend: Backend, model: &str) -> String {
     }
 }
 
+#[allow(dead_code)]
 fn file_uri_to_workspace(workspace_folders: Option<&Vec<WorkspaceFolder>>, file_uri: &str) -> String {
     // let folders = self.workspace_folders.read().await;
     match workspace_folders {
@@ -534,6 +535,7 @@ fn file_uri_to_workspace(workspace_folders: Option<&Vec<WorkspaceFolder>>, file_
 }
 
 impl LlmService {
+    #[allow(dead_code)]
     async fn file_uri_to_workspace(&self, file_uri: String) -> String {
         debug!("From file to workspace {}", file_uri);
         debug!("With workspaces {:?}", self.workspace_folders);

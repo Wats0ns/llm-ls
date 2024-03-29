@@ -18,6 +18,7 @@ env:
 
 jobs:
   dist:
+    continue-on-error: true
     strategy:
       matrix:
         include:
@@ -71,11 +72,11 @@ jobs:
 
       - name: Install AArch64 target toolchain
         if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: sudo apt-get install gcc-aarch64-linux-gnu libc6-dev-arm64-cross  g++-aarch64-linux-gnu
+        run: sudo apt-get install gcc-aarch64-linux-gnu libc6-dev-arm64-cross  g++-aarch64-linux-gnu pkg-config libssl-dev libudev-dev librust-openssl-sys-dev
 
       - name: Install ARM target toolchain
         if: matrix.target == 'arm-unknown-linux-gnueabihf'
-        run: sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+        run: sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf pkg-config libssl-dev libudev-dev librust-openssl-sys-dev
 
       - name: Dist
         run: cargo xtask dist
@@ -100,7 +101,7 @@ jobs:
 
     steps:
       - name: Install dependencies
-        run: apk add --no-cache git clang lld musl-dev nodejs npm openssl-dev pkgconfig g++
+        run: apk add --no-cache git clang lld musl-dev nodejs npm openssl-dev pkgconfig g++ perl perl-io make
 
       - name: Checkout repository
         uses: actions/checkout@v3

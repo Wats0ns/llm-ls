@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="EMPTY_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/crates/custom-types/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/gitignore/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/llm-ls/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/lsp-client/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/mock_server/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/testbed/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/tinyvec-embed/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/xtask/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/tinyvec-embed/benches" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/target" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>
